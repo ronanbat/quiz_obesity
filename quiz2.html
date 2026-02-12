@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Journée de Sensibilisation à l’Obésité</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #74b9ff, #a29bfe);
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+h1 {
+    text-align: center;
+    color: #2d3436;
+}
+
+.question-count {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #636e72;
+}
+
+.progress-bar {
+    height: 10px;
+    background: #dfe6e9;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.progress {
+    height: 10px;
+    background: #00b894;
+    border-radius: 5px;
+    width: 0%;
+    transition: width 0.3s;
+}
+
+.btn {
+    display: block;
+    width: 100%;
+    margin: 8px 0;
+    padding: 14px;
+    font-size: 17px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: #0984e3;
+    color: white;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    transform: scale(1.02);
+}
+
+#score {
+    text-align: center;
+    font-size: 22px;
+    margin-top: 20px;
+}
+
+.feedback {
+    margin-top: 12px;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.restart {
+    margin-top: 15px;
+    background-color: #6c5ce7;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Quiz – Sensibilisation à l’Obésité</h1>
+
+    <div class="question-count" id="questionCount"></div>
+
+    <div class="progress-bar">
+        <div class="progress" id="progress"></div>
+    </div>
+
+    <div id="quiz"></div>
+    <div class="feedback" id="feedback"></div>
+    <div id="score"></div>
+</div>
+
+<script>
+const questions = [
+{q:"1. L’obésité est définie principalement par :", options:["Le tour de taille uniquement","L’indice de masse corporelle (IMC) ≥ 30 kg/m²","Le poids ressenti comme excessif","Le pourcentage de masse musculaire"], answer:1, explanation:"L’IMC ≥ 30 kg/m² est la définition médicale reconnue de l’obésité."},
+{q:"2. L’obésité est aujourd’hui reconnue comme :", options:["Un manque de volonté","Une maladie chronique multifactorielle","Un problème uniquement esthétique","Une conséquence inévitable de l’âge"], answer:1, explanation:"C’est une maladie chronique multifactorielle qui résulte de facteurs génétiques, environnementaux et comportementaux."},
+{q:"3. Parmi ces facteurs, lequel peut contribuer à l’obésité ?", options:["La génétique","Le manque de sommeil","Le stress chronique","Toutes les réponses ci-dessus"], answer:3, explanation:"Tous ces facteurs peuvent contribuer à la prise de poids et à l’obésité."},
+{q:"4. Parmi ces situations, laquelle peut favoriser une prise de poids à long terme ?", options:["Dormir moins de 5 heures par nuit","Sauter régulièrement le petit-déjeuner sans compensation","Être exposé à un stress chronique","Toutes les réponses ci-dessus"], answer:3, explanation:"Le stress chronique, le manque de sommeil et de mauvaises habitudes alimentaires favorisent la prise de poids sur le long terme."},
+{q:"5. L’obésité augmente le risque de :", options:["Diabète de type 2","Hypertension","Maladies cardiovasculaires","Toutes les réponses ci-dessus"], answer:3, explanation:"Elle augmente le risque de nombreuses maladies chroniques, incluant le diabète, l’hypertension et les maladies cardiovasculaires."},
+{q:"6. La stigmatisation des personnes en situation d’obésité peut :", options:["Améliorer leur motivation","Favoriser la perte de poids","Aggraver leur état de santé physique et mentale","Être sans conséquence"], answer:2, explanation:"La stigmatisation aggrave la santé mentale et physique et ne favorise pas la perte de poids."},
+{q:"7. Une perte de poids progressive est préférable car :", options:["Elle est plus durable dans le temps","Elle évite les carences","Elle limite l’effet “yo-yo”","Toutes les réponses ci-dessus"], answer:3, explanation:"Une perte progressive permet de maintenir le poids et d’éviter l’effet yo-yo tout en limitant les carences."},
+{q:"8. La prise en charge de l’obésité repose principalement sur :", options:["Un régime strict rapide","Une approche globale (nutrition, activité, psychologique, médicale)","Des compléments alimentaires","La volonté seule"], answer:1, explanation:"L’approche globale combine nutrition, activité physique, suivi psychologique et médical."},
+{q:"9. L’activité physique recommandée pour un adulte est d’environ :", options:["30 minutes par semaine","10 minutes par jour","150 minutes par semaine","10 minutes par mois"], answer:2, explanation:"Les recommandations sont d’environ 150 minutes par semaine d’activité physique modérée."},
+{q:"10. La chirurgie bariatrique est indiquée :", options:["Pour toute personne souhaitant maigrir","Uniquement pour des raisons esthétiques","Selon des critères médicaux précis","En première intention systématiquement"], answer:2, explanation:"Elle est réservée aux personnes répondant à des critères médicaux précis, et non pour des raisons esthétiques."},
+{q:"11. Combien de personnes sont touchées par l'obésité dans le monde (estimation OMS) ?", options:["Environ 500 millions","Plus d’un milliard","Environ 2,5 milliards","Environ 100 millions"], answer:1, explanation:"Selon l'OMS, plus d’un milliard de personnes dans le monde sont touchées par l’obésité."}
+];
+
+let currentQuestion = 0;
+let score = 0;
+
+const quizDiv = document.getElementById("quiz");
+const scoreDiv = document.getElementById("score");
+const progressBar = document.getElementById("progress");
+const questionCount = document.getElementById("questionCount");
+const feedbackDiv = document.getElementById("feedback");
+
+function showQuestion() {
+    quizDiv.innerHTML = "";
+    feedbackDiv.textContent = "";
+
+    if(currentQuestion >= questions.length){
+        showFinalScore();
+        return;
+    }
+
+    questionCount.textContent = "Question " + (currentQuestion + 1) + " / " + questions.length;
+    progressBar.style.width = ((currentQuestion)/questions.length)*100 + "%";
+
+    const qObj = questions[currentQuestion];
+    const qTitle = document.createElement("h3");
+    qTitle.textContent = qObj.q;
+    quizDiv.appendChild(qTitle);
+
+    qObj.options.forEach((opt, i) => {
+        const btn = document.createElement("button");
+        btn.className = "btn";
+        btn.textContent = opt;
+        btn.onclick = () => selectAnswer(i);
+        quizDiv.appendChild(btn);
+    });
+}
+
+function selectAnswer(i){
+    const qObj = questions[currentQuestion];
+    const buttons = document.querySelectorAll(".btn");
+    const correctIndex = qObj.answer;
+
+    buttons.forEach((btn, index) => {
+        btn.disabled = true;
+
+        if(index === correctIndex){
+            btn.style.backgroundColor = "#00b894"; // vert
+            btn.style.fontWeight = "bold";
+        }
+
+        if(index === i && i !== correctIndex){
+            btn.style.backgroundColor = "#d63031"; // rouge
+            btn.style.fontWeight = "bold";
+        }
+    });
+
+    let delay = 1500; // délai par défaut pour bonne réponse
+
+    if(i === correctIndex){
+        score++;
+        feedbackDiv.style.color = "green";
+        feedbackDiv.textContent = "Bonne réponse ✅";
+    } else {
+        feedbackDiv.style.color = "red";
+        feedbackDiv.textContent = "Mauvaise réponse ❌ Justification : " + qObj.explanation;
+        delay = 2500; // délai plus long pour lire l'explication
+    }
+
+    setTimeout(() => {
+        currentQuestion++;
+        showQuestion();
+    }, delay);
+}
+
+function showFinalScore(){
+    progressBar.style.width = "100%";
+    quizDiv.innerHTML = "<h2>Quiz terminé 🎉</h2>";
+
+    let message = "";
+    if(score === questions.length){
+        message = "Excellent ! Vous êtes très bien informé 👏";
+    } else if(score >= questions.length/2){
+        message = "Bravo ! Continuez à vous informer 👍";
+    } else {
+        message = "Merci d’avoir participé ! L’information est essentielle 💙";
+    }
+
+    scoreDiv.innerHTML = `Score : ${score}/${questions.length}<br>${message}
+    <br><button class="btn restart" onclick="restartQuiz()">Recommencer</button>`;
+}
+
+function restartQuiz(){
+    currentQuestion = 0;
+    score = 0;
+    showQuestion();
+}
+
+showQuestion();
+</script>
+
+</body>
+</html>
